@@ -46,6 +46,7 @@
 #include "ltdc.h"
 #include "rtc.h"
 #include "spi.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 #include "fmc.h"
@@ -114,21 +115,35 @@ void SystemClock_Config(void);
 		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x29,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
 		H_OUT = (dado[1] << 8) + dado[0];
 		
-		return (((H1_rH - H0_rH) * (H_OUT - H0_T0_OUT))/(H1_T0_OUT - H0_T0_OUT) + H0_rH );
+		return (((H1_rH - H0_rH) * (H_OUT - H0_T0_OUT))/(H1_T0_OUT - H0_T0_OUT)) + H0_rH;
 	}
 	float le_temperatura()
 	{
 		uint8_t dado[2];
-		uint16_t t0_deg, t1_deg;
+		uint16_t t0_deg = 0, t1_deg = 0;
+		int16_t  t1_out = 0, t0_out = 0,t_out= 0;
 		dado[0] = 0x82;
 		HAL_I2C_Mem_Write(&hi2c3,0xBE,0x20,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
 		
 		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x32,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
 		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x33,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
-		t0_deg = dado[0];
+		t0_deg = dado[0]; 
 		t1_deg = dado[1];
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x35,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
-		
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x35,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
+		t1_deg = ((dado[0] & 0xC) << 6) + t1_deg; 
+		t0_deg = ((dado[0]  & 3) << 8) + t0_deg;
+		t0_deg = 	t0_deg /8; 
+		t1_deg = t1_deg / 8;
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3C,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3D,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		t0_out = (dado[1] << 8) + dado[0];
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3E,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3F,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		t1_out = (dado[1] << 8) + dado[0];
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x2A,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x2B,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		t_out = (dado[1] << 8) + dado[0];
+		return (((t1_deg - t0_deg) * (t_out - t0_out))/(t1_out - t0_out) + t0_deg);
 	}
 	float le_pressao()
 	{
@@ -152,7 +167,7 @@ int main(void)
 	TS_StateTypeDef TsState;
 	int Pot = 0;
 	int Current = 0;
-	float umidade;
+	float umidade, temp;
 	unsigned char print_vector[30];
 	unsigned char tt[30];
 	RTC_TimeTypeDef sTime;
@@ -186,6 +201,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_RTC_Init();
   MX_ADC1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 	
 	BSP_LCD_Init();
@@ -221,7 +237,7 @@ int main(void)
 		
 		
 		umidade = le_umidade();
-		
+		temp = le_temperatura();
 		
 		BSP_LCD_DisplayStringAtLine(4,tt);
 		
@@ -232,8 +248,10 @@ int main(void)
 		sprintf((char*)print_vector,"%02d:%02d:%02d",sTime.Hours,sTime.Minutes,sTime.Seconds);
     BSP_LCD_DisplayStringAtLine(8,print_vector);
 		
-		sprintf((char*)print_vector,"%02.1f",umidade);
+		sprintf((char*)print_vector,"umid: %02.1f%%",umidade);
     BSP_LCD_DisplayStringAtLine(16,print_vector);
+		sprintf((char*)print_vector,"temp:%02.1fC",temp);
+    BSP_LCD_DisplayStringAtLine(15,print_vector);
 		
 		HAL_ADC_Start(&hadc1);
 		HAL_ADC_PollForConversion(&hadc1,100);
@@ -247,7 +265,9 @@ int main(void)
 		
 		if(Pot > 2000 & Pot < 2095)
 		{
-			BSP_LCD_DisplayStringAtLine(2,(uint8_t*)"motor disligado pora");
+			BSP_LCD_SetFont(&Font12);
+			BSP_LCD_DisplayStringAtLine(1,(uint8_t*)"motor desligado");
+			BSP_LCD_SetFont(&Font16);
 		}
 		else if(Pot >= 2095)
 		{
@@ -260,7 +280,7 @@ int main(void)
 		{
 			sprintf((char*)print_vector,"Motor Esquerda : %04d",((2000-Pot)*100)/2000);
 			BSP_LCD_SetFont(&Font12);
-			BSP_LCD_DisplayStringAtLine(2,print_vector);
+			BSP_LCD_DisplayStringAtLine(3,print_vector);
 			BSP_LCD_SetFont(&Font16);
 		}
 		
@@ -268,7 +288,7 @@ int main(void)
 		
 		
 		
-		HAL_Delay(100);
+		HAL_Delay(300);
 		
 		
 		
