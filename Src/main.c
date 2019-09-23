@@ -42,12 +42,14 @@
 #include "main.h"
 #include "adc.h"
 #include "dma2d.h"
+#include "fatfs.h"
 #include "i2c.h"
 #include "ltdc.h"
 #include "rtc.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
+#include "usb_host.h"
 #include "gpio.h"
 #include "fmc.h"
 
@@ -79,17 +81,29 @@
 /* USER CODE BEGIN PV */
 	uint8_t uartDados[30];
 	uint8_t hora;
+	RTC_TimeTypeDef sTime;
+	RTC_DateTypeDef sDate;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void MX_USB_HOST_Process(void);
+
 /* USER CODE BEGIN PFP */
 	void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	{
-		hora = (uartDados[0] - 0x30) * 10 + uartDados[1];
+		sTime.Hours = (uartDados[0] - 0x30) * 10 + (uartDados[1] - 0x30);
+		sTime.Minutes = (uartDados[3] - 0x30) * 10 + (uartDados[4] - 0x30);
+		sTime.Seconds = (uartDados[6] - 0x30) * 10 + (uartDados[7] - 0x30);
 		
+		sDate.Date = (uartDados[9] - 0x30) * 10 + (uartDados[10] - 0x30);
+		sDate.Month = (uartDados[12] - 0x30) * 10 + (uartDados[13] - 0x30);
+		sDate.Year = (uartDados[15] - 0x30) * 10 + (uartDados[16] - 0x30);
 		
-		HAL_UART_Receive_IT(&huart1,uartDados,2);
+		HAL_RTC_SetDate(&hrtc, &sDate, FORMAT_BIN);
+		HAL_RTC_SetTime(&hrtc, &sTime, FORMAT_BIN);
+		
+		HAL_UART_Receive_IT(&huart1,uartDados,17);
 	}
 	float le_umidade()
 	{
@@ -168,10 +182,10 @@ int main(void)
 	int Pot = 0;
 	int Current = 0;
 	float umidade, temp;
+	int pressao;
 	unsigned char print_vector[30];
 	unsigned char tt[30];
-	RTC_TimeTypeDef sTime;
-	RTC_DateTypeDef sDate;
+	
 
   /* USER CODE END 1 */
 
@@ -202,6 +216,8 @@ int main(void)
   MX_RTC_Init();
   MX_ADC1_Init();
   MX_TIM3_Init();
+  MX_USB_HOST_Init();
+  MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
 	
 	BSP_LCD_Init();
@@ -213,16 +229,17 @@ int main(void)
 	BSP_LCD_SetTextColor(LCD_COLOR_RED);
 	BSP_LCD_SetFont(&Font16);
 	
-	HAL_UART_Receive_IT(&huart1,uartDados,2);
+	sTime.Hours = 18;
+	sTime.Minutes = 30;
+	sTime.Seconds = 0;
+	
+	HAL_UART_Receive_IT(&huart1,uartDados,17);
 
 	BSP_TS_Init(240, 320);
 	
 	
-	sTime.Hours = 18;
-	sTime.Minutes = 30;
-	sTime.Seconds = 0;
-	HAL_RTC_SetDate(&hrtc, &sDate, FORMAT_BIN);
-  HAL_RTC_SetTime(&hrtc, &sTime, FORMAT_BIN);
+
+
 
 	
   /* USER CODE END 2 */
@@ -232,6 +249,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+    MX_USB_HOST_Process();
 
     /* USER CODE BEGIN 3 */
 		
@@ -252,6 +270,8 @@ int main(void)
     BSP_LCD_DisplayStringAtLine(16,print_vector);
 		sprintf((char*)print_vector,"temp:%02.1fC",temp);
     BSP_LCD_DisplayStringAtLine(15,print_vector);
+		sprintf((char*)print_vector,"pressao:%04dhPa",pressao);
+    BSP_LCD_DisplayStringAtLine(14,print_vector);
 		
 		HAL_ADC_Start(&hadc1);
 		HAL_ADC_PollForConversion(&hadc1,100);
@@ -262,12 +282,16 @@ int main(void)
 		
 		sprintf((char*)print_vector,"%04d",Pot);
 		BSP_LCD_DisplayStringAtLine(6,print_vector);
+		printf((char*)print_vector,"%04d",Current);
+		BSP_LCD_DisplayStringAtLine(7,print_vector);
 		
 		if(Pot > 2000 & Pot < 2095)
 		{
 			BSP_LCD_SetFont(&Font12);
 			BSP_LCD_DisplayStringAtLine(1,(uint8_t*)"motor desligado");
 			BSP_LCD_SetFont(&Font16);
+			TIM3->CCR1 = 0;
+			TIM3->CCR3 = 0;
 		}
 		else if(Pot >= 2095)
 		{
@@ -275,6 +299,8 @@ int main(void)
 			BSP_LCD_SetFont(&Font12);
 			BSP_LCD_DisplayStringAtLine(2,print_vector);
 			BSP_LCD_SetFont(&Font16);
+			TIM3->CCR1 = Pot;
+			TIM3->CCR3 = 0;
 		}
 		else if(Pot <= 2000)
 		{
@@ -282,6 +308,8 @@ int main(void)
 			BSP_LCD_SetFont(&Font12);
 			BSP_LCD_DisplayStringAtLine(3,print_vector);
 			BSP_LCD_SetFont(&Font16);
+			TIM3->CCR1 = 0;
+			TIM3->CCR3 = Pot;
 		}
 		
 		
