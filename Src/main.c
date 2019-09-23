@@ -83,6 +83,16 @@
 	uint8_t hora;
 	RTC_TimeTypeDef sTime;
 	RTC_DateTypeDef sDate;
+	extern ApplicationTypeDef Appli_state;
+	FIL fp; //file handle
+	FATFS fatfs; //structure with file system information
+	char text[100]="test";//text which will be written into file
+	char filename[100]="log.csv";//name of the file
+	char filebuffer[100];
+	char text2[100];//buffer for data read from file
+	
+	uint32_t ret;//return variable 
+	
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -100,8 +110,9 @@ void MX_USB_HOST_Process(void);
 		sDate.Month = (uartDados[12] - 0x30) * 10 + (uartDados[13] - 0x30);
 		sDate.Year = (uartDados[15] - 0x30) * 10 + (uartDados[16] - 0x30);
 		
-		HAL_RTC_SetDate(&hrtc, &sDate, FORMAT_BIN);
 		HAL_RTC_SetTime(&hrtc, &sTime, FORMAT_BIN);
+		HAL_RTC_SetDate(&hrtc, &sDate, FORMAT_BIN);
+		
 		
 		HAL_UART_Receive_IT(&huart1,uartDados,17);
 	}
@@ -161,9 +172,52 @@ void MX_USB_HOST_Process(void);
 	}
 	float le_pressao()
 	{
+		uint8_t dado[3];
+		dado[0] = 0x30;
+		uint8_t PRESS_OUT_XL, PRESS_OUT_L,PRESS_OUT_H;
+		int press;
+		HAL_I2C_Mem_Write(&hi2c3,0xBA,0x10,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
+			dado[0] = 0x0;
+		HAL_I2C_Mem_Write(&hi2c3,0xBA,0x11,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBB,0x28,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
+		PRESS_OUT_XL = dado[0];
+		HAL_I2C_Mem_Read(&hi2c3,0xBB,0x29,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		PRESS_OUT_L = dado[1];
+		HAL_I2C_Mem_Read(&hi2c3,0xBB,0x2A,I2C_MEMADD_SIZE_8BIT,&dado[2],1,50);
+		PRESS_OUT_H = dado[2];
+		press = PRESS_OUT_XL + (PRESS_OUT_L << 8) + (PRESS_OUT_H << 16);
+		//press = (~press) + 1;
 		
+		return press/4096;
 	}
-/* USER CODE END PFP */
+
+	void pen_drive(void)
+{
+	static int flag=0;
+	HAL_GPIO_TogglePin(GPIOG,1<<14);
+	while(flag==0) // abre o arquivo para escrita na primeira vez e deixa aberto
+	{
+		MX_USB_HOST_Process();
+		if(Appli_state==APPLICATION_READY)
+		{
+/*open or create file for writing*/
+			if(f_open(&fp,filename,FA_CREATE_ALWAYS | FA_WRITE)!=FR_OK)
+					while(1);
+						else
+						flag=1;
+		}
+	}
+	if(f_write(&fp,filebuffer,strlen((char*)filebuffer),&ret)!=FR_OK) // vai escrevendo até pressionar o botao azul
+		while(1);
+	if(HAL_GPIO_ReadPin(GPIOA,1)==1) // quando pressiona botao azul para de gravar e fecha o
+		{
+			f_close(&fp);
+			GPIOG->BSRR=1<<13;
+		}
+}
+
+	
+	/* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
@@ -232,6 +286,12 @@ int main(void)
 	sTime.Hours = 18;
 	sTime.Minutes = 30;
 	sTime.Seconds = 0;
+	sDate.Date = 11; //(Dia do mês de 1 a 31)
+	sDate.Month = RTC_MONTH_JANUARY; //(Mês de 1 a 12)
+	sDate.WeekDay = RTC_WEEKDAY_MONDAY; //(Dia da semana de 1 a 7)
+	sDate.Year = 19; //(Ano de 0 a 99)
+	HAL_RTC_SetDate(&hrtc, &sDate, FORMAT_BIN);
+	HAL_RTC_SetTime(&hrtc, &sTime, FORMAT_BIN);
 	
 	HAL_UART_Receive_IT(&huart1,uartDados,17);
 
@@ -253,7 +313,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 		
-		
+		pressao = le_pressao();
 		umidade = le_umidade();
 		temp = le_temperatura();
 		
@@ -265,6 +325,8 @@ int main(void)
 				
 		sprintf((char*)print_vector,"%02d:%02d:%02d",sTime.Hours,sTime.Minutes,sTime.Seconds);
     BSP_LCD_DisplayStringAtLine(8,print_vector);
+		sprintf((char*)print_vector,"%02d/%02d/%02d",sDate.Date,sDate.Month,sDate.Year);
+    BSP_LCD_DisplayStringAtLine(9,print_vector);
 		
 		sprintf((char*)print_vector,"umid: %02.1f%%",umidade);
     BSP_LCD_DisplayStringAtLine(16,print_vector);
@@ -280,9 +342,10 @@ int main(void)
 		Current = HAL_ADC_GetValue(&hadc1); //LEITURA DO CANAL 13 (na ordem RANK) //Pino PC3
 		HAL_ADC_Stop(&hadc1);
 		
+		
 		sprintf((char*)print_vector,"%04d",Pot);
 		BSP_LCD_DisplayStringAtLine(6,print_vector);
-		printf((char*)print_vector,"%04d",Current);
+		sprintf((char*)print_vector,"%04d",Current);
 		BSP_LCD_DisplayStringAtLine(7,print_vector);
 		
 		if(Pot > 2000 & Pot < 2095)
@@ -309,14 +372,14 @@ int main(void)
 			BSP_LCD_DisplayStringAtLine(3,print_vector);
 			BSP_LCD_SetFont(&Font16);
 			TIM3->CCR1 = 0;
-			TIM3->CCR3 = Pot;
+			TIM3->CCR3 = Pot; 
 		}
 		
 		
+		sprintf(filebuffer,"%d,%.1f,%.1f,%d,%02d:%02d:%02d,%02d/%02d/%02d\n\r",pressao,temp,umidade,Current,sTime.Hours,sTime.Minutes,sTime.Seconds,sDate.Date,sDate.Month,sDate.Year);
 		
-		
-		
-		HAL_Delay(300);
+		pen_drive();
+		HAL_Delay(500);
 		
 		
 		
