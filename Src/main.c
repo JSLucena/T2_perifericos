@@ -122,22 +122,22 @@ void MX_USB_HOST_Process(void);
 		uint16_t H0_rH,H1_rH;
 		int16_t H0_T0_OUT,H1_T0_OUT,H_OUT ;
 		dado[0] = 0x82;
-		HAL_I2C_Mem_Write(&hi2c3,0xBE,0x20,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
+		HAL_I2C_Mem_Write(&hi2c3,0xBE,0x20,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
 		
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x30,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x31,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x30,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x31,I2C_MEMADD_SIZE_8BIT,&dado[1],1,30);
 		H0_rH = dado[0]/2;
 		H1_rH = dado[1]/2;
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x36,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x37,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x36,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x37,I2C_MEMADD_SIZE_8BIT,&dado[1],1,30);
 		H0_T0_OUT = (dado[1] << 8) + dado[0];
 		
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3A,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3B,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3A,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3B,I2C_MEMADD_SIZE_8BIT,&dado[1],1,30);
 		H1_T0_OUT = (dado[1] << 8) + dado[0];
 		
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x28,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x29,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x28,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x29,I2C_MEMADD_SIZE_8BIT,&dado[1],1,30);
 		H_OUT = (dado[1] << 8) + dado[0];
 		
 		return (((H1_rH - H0_rH) * (H_OUT - H0_T0_OUT))/(H1_T0_OUT - H0_T0_OUT)) + H0_rH;
@@ -148,25 +148,25 @@ void MX_USB_HOST_Process(void);
 		uint16_t t0_deg = 0, t1_deg = 0;
 		int16_t  t1_out = 0, t0_out = 0,t_out= 0;
 		dado[0] = 0x82;
-		HAL_I2C_Mem_Write(&hi2c3,0xBE,0x20,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
+		HAL_I2C_Mem_Write(&hi2c3,0xBE,0x20,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
 		
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x32,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x33,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x32,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x33,I2C_MEMADD_SIZE_8BIT,&dado[1],1,30);
 		t0_deg = dado[0]; 
 		t1_deg = dado[1];
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x35,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x35,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
 		t1_deg = ((dado[0] & 0xC) << 6) + t1_deg; 
 		t0_deg = ((dado[0]  & 3) << 8) + t0_deg;
 		t0_deg = 	t0_deg /8; 
 		t1_deg = t1_deg / 8;
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3C,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3D,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3C,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3D,I2C_MEMADD_SIZE_8BIT,&dado[1],1,30);
 		t0_out = (dado[1] << 8) + dado[0];
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3E,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3F,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3E,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x3F,I2C_MEMADD_SIZE_8BIT,&dado[1],1,30);
 		t1_out = (dado[1] << 8) + dado[0];
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x2A,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
-		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x2B,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x2A,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
+		HAL_I2C_Mem_Read(&hi2c3,0xBF,0x2B,I2C_MEMADD_SIZE_8BIT,&dado[1],1,30);
 		t_out = (dado[1] << 8) + dado[0];
 		return (((t1_deg - t0_deg) * (t_out - t0_out))/(t1_out - t0_out) + t0_deg);
 	}
@@ -176,14 +176,14 @@ void MX_USB_HOST_Process(void);
 		dado[0] = 0x30;
 		uint8_t PRESS_OUT_XL, PRESS_OUT_L,PRESS_OUT_H;
 		int press;
-		HAL_I2C_Mem_Write(&hi2c3,0xBA,0x10,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
+		HAL_I2C_Mem_Write(&hi2c3,0xBA,0x10,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
 			dado[0] = 0x0;
-		HAL_I2C_Mem_Write(&hi2c3,0xBA,0x11,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
-		HAL_I2C_Mem_Read(&hi2c3,0xBB,0x28,I2C_MEMADD_SIZE_8BIT,&dado[0],1,50);
+		HAL_I2C_Mem_Write(&hi2c3,0xBA,0x11,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
+		HAL_I2C_Mem_Read(&hi2c3,0xBB,0x28,I2C_MEMADD_SIZE_8BIT,&dado[0],1,30);
 		PRESS_OUT_XL = dado[0];
-		HAL_I2C_Mem_Read(&hi2c3,0xBB,0x29,I2C_MEMADD_SIZE_8BIT,&dado[1],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBB,0x29,I2C_MEMADD_SIZE_8BIT,&dado[1],1,30);
 		PRESS_OUT_L = dado[1];
-		HAL_I2C_Mem_Read(&hi2c3,0xBB,0x2A,I2C_MEMADD_SIZE_8BIT,&dado[2],1,50);
+		HAL_I2C_Mem_Read(&hi2c3,0xBB,0x2A,I2C_MEMADD_SIZE_8BIT,&dado[2],1,30);
 		PRESS_OUT_H = dado[2];
 		press = PRESS_OUT_XL + (PRESS_OUT_L << 8) + (PRESS_OUT_H << 16);
 		//press = (~press) + 1;
@@ -192,29 +192,29 @@ void MX_USB_HOST_Process(void);
 	}
 
 	void pen_drive(void)
-{
-	static int flag=0;
-	HAL_GPIO_TogglePin(GPIOG,1<<14);
-	while(flag==0) // abre o arquivo para escrita na primeira vez e deixa aberto
-	{
-		MX_USB_HOST_Process();
-		if(Appli_state==APPLICATION_READY)
+	{	
+		static int flag=0;
+		HAL_GPIO_TogglePin(GPIOG,1<<14);
+		while(flag==0) // abre o arquivo para escrita na primeira vez e deixa aberto
 		{
-/*open or create file for writing*/
-			if(f_open(&fp,filename,FA_CREATE_ALWAYS | FA_WRITE)!=FR_OK)
+			MX_USB_HOST_Process();
+			if(Appli_state==APPLICATION_READY)
+			{
+				/*open or create file for writing*/
+				if(f_open(&fp,filename,FA_CREATE_ALWAYS | FA_WRITE)!=FR_OK)
 					while(1);
-						else
-						flag=1;
+				else
+					flag=1;
+			}
 		}
+		if(f_write(&fp,filebuffer,strlen((char*)filebuffer),&ret)!=FR_OK) // vai escrevendo atï¿½ pressionar o botao azul
+			while(1);
+		if(HAL_GPIO_ReadPin(GPIOA,1)==1) // quando pressiona botao azul para de gravar e fecha o
+			{
+				f_close(&fp);
+				GPIOG->BSRR=1<<13;
+			}
 	}
-	if(f_write(&fp,filebuffer,strlen((char*)filebuffer),&ret)!=FR_OK) // vai escrevendo até pressionar o botao azul
-		while(1);
-	if(HAL_GPIO_ReadPin(GPIOA,1)==1) // quando pressiona botao azul para de gravar e fecha o
-		{
-			f_close(&fp);
-			GPIOG->BSRR=1<<13;
-		}
-}
 
 	
 	/* USER CODE END PFP */
@@ -286,8 +286,8 @@ int main(void)
 	sTime.Hours = 18;
 	sTime.Minutes = 30;
 	sTime.Seconds = 0;
-	sDate.Date = 11; //(Dia do mês de 1 a 31)
-	sDate.Month = RTC_MONTH_JANUARY; //(Mês de 1 a 12)
+	sDate.Date = 11; //(Dia do mï¿½s de 1 a 31)
+	sDate.Month = RTC_MONTH_JANUARY; //(Mï¿½s de 1 a 12)
 	sDate.WeekDay = RTC_WEEKDAY_MONDAY; //(Dia da semana de 1 a 7)
 	sDate.Year = 19; //(Ano de 0 a 99)
 	HAL_RTC_SetDate(&hrtc, &sDate, FORMAT_BIN);
@@ -297,11 +297,21 @@ int main(void)
 
 	BSP_TS_Init(240, 320);
 	
-	
+
+	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(&htim3,TIM_CHANNEL_1);
 
 
 
-	
+	if ( f_mount( &p.fatfs,"" ,0) != FR_OK )
+	{
+		BSP_LCD_SetFont(&Font12);
+		sprintf((char*)c.vetor_print,"USB mount failed, try again");
+		BSP_LCD_DisplayStringAtLine(0,c.vetor_print);
+		while(1);
+}
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -345,7 +355,7 @@ int main(void)
 		
 		sprintf((char*)print_vector,"%04d",Pot);
 		BSP_LCD_DisplayStringAtLine(6,print_vector);
-		sprintf((char*)print_vector,"%04d",Current);
+		sprintf((char*)print_vector,"corrente: %04d",Current);
 		BSP_LCD_DisplayStringAtLine(7,print_vector);
 		
 		if(Pot > 2000 & Pot < 2095)
@@ -376,10 +386,10 @@ int main(void)
 		}
 		
 		
-		sprintf(filebuffer,"%d,%.1f,%.1f,%d,%02d:%02d:%02d,%02d/%02d/%02d\n\r",pressao,temp,umidade,Current,sTime.Hours,sTime.Minutes,sTime.Seconds,sDate.Date,sDate.Month,sDate.Year);
+		sprintf(filebuffer,"%d,%.1f,%.1f,%d,%02d:%02d:%02d,%02d/%02d/%02d\r\n",pressao,temp,umidade,Current,sTime.Hours,sTime.Minutes,sTime.Seconds,sDate.Date,sDate.Month,sDate.Year);
 		
 		pen_drive();
-		HAL_Delay(500);
+		HAL_Delay(180);
 		
 		
 		
