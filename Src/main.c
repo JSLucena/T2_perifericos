@@ -217,7 +217,7 @@ void MX_USB_HOST_Process(void);
 	}
 
 	
-	/* USER CODE END PFP */
+/* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
@@ -303,13 +303,13 @@ int main(void)
 
 
 
-	if ( f_mount( &p.fatfs,"" ,0) != FR_OK )
-	{
-		BSP_LCD_SetFont(&Font12);
-		sprintf((char*)c.vetor_print,"USB mount failed, try again");
-		BSP_LCD_DisplayStringAtLine(0,c.vetor_print);
-		while(1);
-}
+//	if ( f_mount( &fatfs,"" ,0) != FR_OK )
+	//{
+//		BSP_LCD_SetFont(&Font12);
+//		sprintf((char*)print_vector,"USB mount failed, try again");
+//		BSP_LCD_DisplayStringAtLine(0,print_vector);
+//		while(1);
+//}
 
 
   /* USER CODE END 2 */
@@ -319,7 +319,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-    MX_USB_HOST_Process();
+//    MX_USB_HOST_Process();
 
     /* USER CODE BEGIN 3 */
 		
@@ -372,7 +372,7 @@ int main(void)
 			BSP_LCD_SetFont(&Font12);
 			BSP_LCD_DisplayStringAtLine(2,print_vector);
 			BSP_LCD_SetFont(&Font16);
-			TIM3->CCR1 = Pot;
+			TIM3->CCR1 = ((Pot-2095)*100)/2000;
 			TIM3->CCR3 = 0;
 		}
 		else if(Pot <= 2000)
@@ -382,15 +382,15 @@ int main(void)
 			BSP_LCD_DisplayStringAtLine(3,print_vector);
 			BSP_LCD_SetFont(&Font16);
 			TIM3->CCR1 = 0;
-			TIM3->CCR3 = Pot; 
+			TIM3->CCR3 = ((2000-Pot)*100)/2000; 
 		}
 		
 		
 		sprintf(filebuffer,"%d,%.1f,%.1f,%d,%02d:%02d:%02d,%02d/%02d/%02d\r\n",pressao,temp,umidade,Current,sTime.Hours,sTime.Minutes,sTime.Seconds,sDate.Date,sDate.Month,sDate.Year);
 		
-		pen_drive();
-		HAL_Delay(180);
-		
+	//	pen_drive();
+		HAL_Delay(500);
+		 
 		
 		
 		/*BSP_TS_GetState(&TsState);
