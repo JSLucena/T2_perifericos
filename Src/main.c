@@ -353,8 +353,7 @@ int main(void)
 		Current = HAL_ADC_GetValue(&hadc1); //LEITURA DO CANAL 13 (na ordem RANK) //Pino PC3
 		HAL_ADC_Stop(&hadc1);
 		
-		sprintf((char*)print_vector,"corrente em A: %03.1f",cur);
-		BSP_LCD_DisplayStringAtLine(5,print_vector);
+		
 		sprintf((char*)print_vector,"%04d",Pot);
 		BSP_LCD_DisplayStringAtLine(6,print_vector);
 		sprintf((char*)print_vector,"corrente: %04d",Current);
@@ -386,22 +385,15 @@ int main(void)
 			TIM3->CCR1 = 0;
 			TIM3->CCR3 = ((2000-Pot)*100)/2000; 
 		}
-		if(Current > 3000 & Current < 3095)
-		{
-			cur = 0;
-		}
-		else if(Current >= 3095)
-		{
-			cur = Current * 3/4095;
+	
+		
+			cur = (Current * 3)/4095;
 			cur = cur - 2.5;
 			cur  = cur/0.185;
-		}
-		else
-		{
-			cur = Current * 3/4095;
-			cur = 2.5 - cur;
-			cur  = cur/0.185;
-		}
+		
+		
+		sprintf((char*)print_vector,"corr. em A: %07.4f",cur);
+		BSP_LCD_DisplayStringAtLine(5,print_vector);
 		sprintf(filebuffer,"%d,%.1f,%.1f,%d,%02d:%02d:%02d,%02d/%02d/%02d\r\n",pressao,temp,umidade,cur,sTime.Hours,sTime.Minutes,sTime.Seconds,sDate.Date,sDate.Month,sDate.Year);
 		
 		pen_drive();
